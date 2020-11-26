@@ -44,7 +44,6 @@
         </div>
         <div class="modal fade" id="myModal" role="dialog">
             <div class="modal-dialog">
-                <!-- Modal content-->
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -71,30 +70,6 @@
                         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                     </div>
                 </div>
-                <!-- <div id="addEditForm" style="display: none;">
-                    <table>
-                        <tr>
-                            <td>User Id</td>
-                            <td id="tdUserId"></td>
-                        </tr>
-                        <tr>
-                            <td>User Name</td>
-                            <td><input type="text" id="inputUserName" /></td>
-                        </tr>
-                        <tr>
-                            <td>Description</td>
-                            <td><textarea id="textAreaDescription" rows="4" cols="50"></textarea></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <button type="button" class="btn btn-success" onclick="onSaveClick()">Save</button>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-danger" onclick="onCancelClick()">Cancel</button>
-                            </td>
-                        </tr>
-                    </table>
-                </div> -->
             </div>
         </div>
     </div>
@@ -136,7 +111,7 @@
                 if (index > -1) {
                     $("#tdUserId").html(rows[index].id);
                     $("#inputUserName").val(rows[index].title),
-                        $("#textAreaDescription").val(rows[index].body);
+                    $("#textAreaDescription").val(rows[index].body);
                 }
             }
         }
@@ -179,12 +154,6 @@
                 }
             });
         }
-        // function onCancelClick() {
-        //     $("input[type='checkbox']").prop('checked', false);
-        //     $("#btnEditDisable").show();
-        //     $("#btnEdit").hide();
-        //     resetForm();
-        // }
         function deleteData(userId, rowId) {
             $.ajax({
                 url: endpoint + "/posts/" + rowId,
