@@ -8,8 +8,12 @@
 
     <style>
         body {
-           margin-left: 50px;
-           margin-right: 50px;
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        tr {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -18,8 +22,10 @@
     <div>
         <div id="userTableSection">
             <div style="float: right; margin-top: 20px; margin-bottom: 20px;">
-                <button type="button" class="btn btn-success" onclick="onAddClick()">Add</button>
-                <button id="btnEdit" type="button" class="btn btn-secondary" onclick="onEditClick()">Edit</button>
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">Add</button>
+                <button id="btnEdit" type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal"
+                    onclick="onEditClick()">Edit</button>
+                <button id="btnEditDisable" type="button" class="btn btn-secondary">Edit</button>
                 <button type="button" class="btn btn-danger" onclick="onDeleteClick()">Delete</button>
             </div>
             <table id="userTable" class="table table-bordered">
@@ -36,38 +42,70 @@
                 </tbody>
             </table>
         </div>
-        <div id="addEditForm" style="display: none;">
-            <table>
-                <tr>
-                    <td>User Id</td>
-                    <td id="tdUserId"></td>
-                </tr>
-                <tr>
-                    <td>User Name</td>
-                    <td><input type="text" id="inputUserName" /></td>
-                </tr>
-                <tr>
-                    <td>Description</td>
-                    <td><textarea id="textAreaDescription" rows="4" cols="50"></textarea></td>
-                </tr>
-                <tr>
-                    <td>
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <table>
+                            <tr>
+                                <td>User Id</td>
+                                <td id="tdUserId"></td>
+                            </tr>
+                            <tr>
+                                <td>User Name</td>
+                                <td><input type="text" id="inputUserName" /></td>
+                            </tr>
+                            <tr>
+                                <td>Description</td>
+                                <td><textarea id="textAreaDescription" rows="4" cols="50"></textarea></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-success" onclick="onSaveClick()">Save</button>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger" onclick="onCancelClick()">Cancel</button>
-                    </td>
-                </tr>
-            </table>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                <!-- <div id="addEditForm" style="display: none;">
+                    <table>
+                        <tr>
+                            <td>User Id</td>
+                            <td id="tdUserId"></td>
+                        </tr>
+                        <tr>
+                            <td>User Name</td>
+                            <td><input type="text" id="inputUserName" /></td>
+                        </tr>
+                        <tr>
+                            <td>Description</td>
+                            <td><textarea id="textAreaDescription" rows="4" cols="50"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <button type="button" class="btn btn-success" onclick="onSaveClick()">Save</button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger" onclick="onCancelClick()">Cancel</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div> -->
+            </div>
         </div>
     </div>
     <script type="text/javascript">
         let rows = [];
         let selectedRows = [];
+        let user;
         var endpoint = 'https://jsonplaceholder.typicode.com'
         $(document).ready(function () {
             loadData();
-
+            $("#btnEdit").hide();
 
         });
         function onDeleteClick() {
@@ -90,46 +128,37 @@
                 }
             });
         }
-        function onAddClick() {
-            $("#userTableSection").hide();
-            $("#addEditForm").show();
-
-        }
         function onEditClick() {
             if (selectedRows.length == 1) {
-                let userId = selectedRows[0].split("_")[0];
-                let rowId = selectedRows[0].split("_")[1];
-                let index = rows.findIndex(a => a.id == rowId);
+                userId = selectedRows[0].split("_")[0];
+                id = selectedRows[0].split("_")[1];
+                let index = rows.findIndex(a => a.id == id);
                 if (index > -1) {
-                    $("#userTableSection").hide();
-                    $("#addEditForm").show();
                     $("#tdUserId").html(rows[index].id);
                     $("#inputUserName").val(rows[index].title),
                         $("#textAreaDescription").val(rows[index].body);
                 }
-                selectedRows = [];
             }
         }
         function onSaveClick() {
             let isAdd = false;
-            let user = null;
             let url = '';
             let postType = 'POST';
             if ($("#tdUserId").html().length == 0) {
-                user = JSON.stringify({
+                user = {
                     title: $("#inputUserName").val(),
                     body: $("#textAreaDescription").val(),
                     userId: 1
-                });
+                };
                 isAdd = true;
                 url = endpoint + "/posts";
             } else {
-                user = JSON.stringify({
+                user = {
+                    id: parseInt(id.toString()),
                     title: $("#inputUserName").val(),
                     body: $("#textAreaDescription").val(),
-                    userId: 1,
-                    id: parseInt($("#tdUserId").html())
-                });
+                    userId: parseInt(userId.toString())
+                };
                 isAdd = false;
                 url = endpoint + "/posts/1";
                 postType = "PUT";
@@ -139,24 +168,23 @@
                 type: postType,
                 contentType: "application/json; charset=UTF-8",
                 dataType: 'json',
-                data: user,
+                data: JSON.stringify(user),
                 success: function (result) {
-                    onCancelClick();
+                    $("#myModal").modal("hide");
+                    resetForm();
                     if (isAdd)
                         bindData([result]);
                     else
-                        updateData(result);
+                        updateData(user);
                 }
             });
         }
-        function onCancelClick() {
-            $("#userTableSection").show();
-            $("input[type='checkbox']").prop('checked', false);
-            $("#addEditForm").hide();
-            $("#btnEdit").prop('disable', true);
-            $("#btnEdit").removeClass('btn btn-info');
-            $("#btnEdit").addClass('btn btn-secondary');
-        }
+        // function onCancelClick() {
+        //     $("input[type='checkbox']").prop('checked', false);
+        //     $("#btnEditDisable").show();
+        //     $("#btnEdit").hide();
+        //     resetForm();
+        // }
         function deleteData(userId, rowId) {
             $.ajax({
                 url: endpoint + "/posts/" + rowId,
@@ -166,10 +194,9 @@
                 success: function (result) {
                     $("#tr_" + rowId).remove();
                     selectedRows = [];
-                    $("#btnEdit").prop('disable', true);
-                    $("#btnEdit").removeClass('btn btn-info');
-                    $("#btnEdit").addClass('btn btn-secondary');
 
+                    $("#btnEditDisable").show();
+                    $("#btnEdit").hide();
                 }
             });
         }
@@ -197,16 +224,14 @@
                         selectedRows.splice(i, 1);
                     }
                 }
-                if (selectedRows.length == 1) {
-                    $("#btnEdit").prop('disable', false);
-                    $("#btnEdit").removeClass('btn btn-secondary');
-                    $("#btnEdit").addClass('btn btn-info');
-                }
-                else {
-                    $("#btnEdit").prop('disable', true);
-                    $("#btnEdit").removeClass('btn btn-info');
-                    $("#btnEdit").addClass('btn btn-secondary');
-                }
+            }
+            if (selectedRows.length == 1) {
+                $("#btnEditDisable").hide();
+                $("#btnEdit").show();
+            }
+            else {
+                $("#btnEditDisable").show();
+                $("#btnEdit").hide();
             }
 
         }
@@ -231,6 +256,11 @@
                 $("#tdUserTitle_" + user.id).html(user.title);
                 $("#tdUserBody_" + user.id).html(user.body);
             }
+        }
+        function resetForm() {
+            $("#tdUserId").html('');
+            $("#inputUserName").val(''),
+                $("#textAreaDescription").val('');
         }
     </script>
 </body>
